@@ -1,0 +1,27 @@
+.point{
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50px;
+    background-color: red;
+}
+
+#point1 {
+    top: 50px;
+    left: 50px;
+}
+
+#point2 {
+    top: 50px;
+    right: 50px;
+}
+
+#point3 {
+    bottom: 50px;
+    left: 50px;
+}
+
+#point4 {
+    bottom: 50px;
+    right: 50px;
+}
