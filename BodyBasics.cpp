@@ -27,25 +27,28 @@ static float current_x_in_space = 0;
 static float current_x_on_screen = 0;
 static float current_y_in_space = 0;
 static float current_y_on_screen = 0;
+static int SCREEN_WIDTH = 4096;
+static int SCREEN_HEIGHT = 2304;
 
 /***************************Functions from Huyb**********************************/
 void mouse_move(int dx, int dy);
 int my_sign(double in);
 void mouse_move(int dx, int dy)
 {
-    float const TIME_EACH_MOVE = 0.2;
-    float const DISTANCE_EACH_MOVE = 1;
-    float total_distance, x_each, y_each;
-    total_distance = sqrt(pow(dx, 2) + pow(dy, 2));
-    float times = total_distance / DISTANCE_EACH_MOVE;
-    x_each = abs(dx / times) > 1 ? dx / times : 1 * my_sign(dx);
-    y_each = abs(dy / times) > 1 ? dy / times : 1 * my_sign(dy);
-
-    for (int i = 0; i < times; i++)
-    {
-        _sleep(TIME_EACH_MOVE);
-        mouse_event(MOUSEEVENTF_MOVE, x_each, y_each, 0, 0);
-    }
+	int const TIMES_TOTAL = 20;
+	float TIME_EACH_MOVE = 2e-9;
+	float const DISTANCE_EACH_MOVE = 1;
+	float total_distance, x_each, y_each;
+	total_distance = sqrt(pow(dx, 2) + pow(dy, 2));
+	float times = min(total_distance / DISTANCE_EACH_MOVE, TIMES_TOTAL);
+	float total_time = times*TIME_EACH_MOVE;
+	x_each = abs(dx / times) > 1 ? dx / times : 1 * my_sign(dx);
+	y_each = abs(dy / times) > 1 ? dy / times : 1 * my_sign(dy);
+	for (int i = 0; i < times; i++)
+	{
+		_sleep(TIME_EACH_MOVE);
+		mouse_event(MOUSEEVENTF_MOVE, x_each, y_each, 0, 0);
+	}
 
 }
 
@@ -401,41 +404,57 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 						hr = pBody->GetJoints(_countof(joints), joints);
 
                         /*******************BY Huyb***************/
-                        float temp_x_in_space = 0, temp_y_in_space = 0, temp_x_on_screen, temp_y_on_screen;
-                        float d_x = 0, d_y = 0;
-                        float x_ratio, y_ratio;
+						float temp_x_in_space = 0, temp_y_in_space = 0, temp_x_on_screen, temp_y_on_screen;
+						float d_x = 0, d_y = 0;
+						float x_ratio, y_ratio;
 
-                        if (joints[JointType_HandRight].TrackingState == TrackingState_Tracked)
-                        {
-                            temp_x_in_space = joints[JointType_HandRight].Position.X;
-                            temp_y_in_space = joints[JointType_HandRight].Position.Y;
-                            d_x = x_ratio*(temp_x_in_space - current_x_in_space);
-                            d_y = y_ratio*(temp_y_in_space - current_y_in_space);
-                            mouse_move(d_x, d_y);
-                            current_x_on_screen = temp_x_on_screen;
-                            current_y_on_screen = temp_y_on_screen;
-                            current_x_in_space = temp_x_in_space;
-                            current_y_in_space = temp_y_in_space;
+						x_ratio = SCREEN_WIDTH / 2;
+						y_ratio = SCREEN_HEIGHT / 2;
+						if (joints[JointType_HandRight].TrackingState == TrackingState_Tracked)
+						{
+							std::ofstream fp("test.txt", std::ios::app);
 
-                            /*下面是绝对移动*/
-                            /*
-                            temp_x_in_space = joints[JointType_HandRight].Position.X;
-                            temp_y_in_space = joints[JointType_HandRight].Position.Y;
-                            temp_x_on_screen = x_ratio * temp_x_in_space;
-                            temp_y_on_screen = y_ratio * temp_y_in_space;
-                            d_x = temp_x_on_screen - current_x_on_screen;
-                            d_y = temp_y_on_screen - current_y_on_screen;
-                            mouse_move(d_x, d_y);
-                            current_x_in_space = temp_x_in_space;
-                            current_y_in_space = temp_y_in_space;
-                            */
+							temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
+							temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
+							d_x = x_ratio*(temp_x_in_space - current_x_in_space);
+							d_y = y_ratio*(temp_y_in_space - current_y_in_space);
+							if (current_x_in_space != 0 && current_y_in_space != 0)//第一次不动
+							{
+								mouse_move(d_x, d_y);
+							}
+							current_x_on_screen = current_x_on_screen + d_x;
+							current_y_on_screen = current_y_on_screen + d_y;
+							current_x_in_space = temp_x_in_space;
+							current_y_in_space = temp_y_in_space;
 
-                            
-                        }
-                        else
-                        {
-                        }
+							fp << "current ordinate:\n screen{ x:" << current_x_on_screen << ",y:" << current_y_on_screen <<
+								"};space{ x:" << current_x_in_space << ",y:" << current_y_in_space << "};d{ x:" << d_x << ",y:" << d_y << "}\n";
+
+							/*下面是绝对移动*/
+							/*
+							temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
+							temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
+							temp_x_on_screen = x_ratio * temp_x_in_space;
+							temp_y_on_screen = y_ratio * temp_y_in_space;
+							d_x = temp_x_on_screen - current_x_on_screen;
+							d_y = temp_y_on_screen - current_y_on_screen;
+							if (current_x_in_space != 0 && current_y_in_space != 0)//第一次不动
+							{
+							mouse_move(d_x, d_y);
+							}
+							current_x_in_space = temp_x_in_space;
+							current_y_in_space = temp_y_in_space;
+
+							fp.close();
+							*/
+
+						}
+						else
+						{
+						}
                         /**************By Huyb*************************/
+
+						/*
 
 						std::ofstream fp("test.txt", std::ios::app);
 						if( !has_caliborate ){
@@ -485,7 +504,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 						}
 
 
-						fp.close();
+						fp.close();*/
 
                         if (SUCCEEDED(hr))
                         {
