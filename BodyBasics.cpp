@@ -23,7 +23,42 @@ static bool left_hand_flag = FALSE;
 static bool right_hand_flag = FALSE;
 static bool has_caliborate = FALSE;
 static std::vector<std::pair<double,double>> kinectPoints;
+static float current_x_in_space = 0;
+static float current_x_on_screen = 0;
+static float current_y_in_space = 0;
+static float current_y_on_screen = 0;
 
+/***************************Functions from Huyb**********************************/
+void mouse_move(int dx, int dy);
+int my_sign(double in);
+void mouse_move(int dx, int dy)
+{
+    float const TIME_EACH_MOVE = 0.2;
+    float const DISTANCE_EACH_MOVE = 1;
+    float total_distance, x_each, y_each;
+    total_distance = sqrt(pow(dx, 2) + pow(dy, 2));
+    float times = total_distance / DISTANCE_EACH_MOVE;
+    x_each = abs(dx / times) > 1 ? dx / times : 1 * my_sign(dx);
+    y_each = abs(dy / times) > 1 ? dy / times : 1 * my_sign(dy);
+
+    for (int i = 0; i < times; i++)
+    {
+        _sleep(TIME_EACH_MOVE);
+        mouse_event(MOUSEEVENTF_MOVE, x_each, y_each, 0, 0);
+    }
+
+}
+
+int my_sign(double in)
+{
+    int out = 0;
+    if (in > 0)
+        out = 1;
+    else if (in < 0)
+        out = -1;
+    return out;
+}
+/***************************Functions from Huyb**********************************/
 
 /// <summary>
 /// Entry point for the application
@@ -364,6 +399,43 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
                         pBody->get_HandRightState(&rightHandState);
 
 						hr = pBody->GetJoints(_countof(joints), joints);
+
+                        /*******************BY Huyb***************/
+                        float temp_x_in_space = 0, temp_y_in_space = 0, temp_x_on_screen, temp_y_on_screen;
+                        float d_x = 0, d_y = 0;
+                        float x_ratio, y_ratio;
+
+                        if (joints[JointType_HandRight].TrackingState == TrackingState_Tracked)
+                        {
+                            temp_x_in_space = joints[JointType_HandRight].Position.X;
+                            temp_y_in_space = joints[JointType_HandRight].Position.Y;
+                            d_x = x_ratio*(temp_x_in_space - current_x_in_space);
+                            d_y = y_ratio*(temp_y_in_space - current_y_in_space);
+                            mouse_move(d_x, d_y);
+                            current_x_on_screen = temp_x_on_screen;
+                            current_y_on_screen = temp_y_on_screen;
+                            current_x_in_space = temp_x_in_space;
+                            current_y_in_space = temp_y_in_space;
+
+                            /*下面是绝对移动*/
+                            /*
+                            temp_x_in_space = joints[JointType_HandRight].Position.X;
+                            temp_y_in_space = joints[JointType_HandRight].Position.Y;
+                            temp_x_on_screen = x_ratio * temp_x_in_space;
+                            temp_y_on_screen = y_ratio * temp_y_in_space;
+                            d_x = temp_x_on_screen - current_x_on_screen;
+                            d_y = temp_y_on_screen - current_y_on_screen;
+                            mouse_move(d_x, d_y);
+                            current_x_in_space = temp_x_in_space;
+                            current_y_in_space = temp_y_in_space;
+                            */
+
+                            
+                        }
+                        else
+                        {
+                        }
+                        /**************By Huyb*************************/
 
 						std::ofstream fp("test.txt", std::ios::app);
 						if( !has_caliborate ){
