@@ -23,13 +23,15 @@ static const float c_HandSize = 30.0f;
 static bool left_hand_flag = FALSE;
 static bool right_hand_flag = FALSE;
 static bool has_caliborate = FALSE;
-static std::vector<std::pair<double,double>> kinectPoints;
+static std::vector<std::pair<double, double>> kinectPoints;
 static float current_x_in_space = 0;
 static float current_x_on_screen = 0;
 static float current_y_in_space = 0;
 static float current_y_on_screen = 0;
-static int SCREEN_WIDTH = 4096;
-static int SCREEN_HEIGHT = 2304;
+static int SCREEN_WIDTH = GetSystemMetrics(SM_CXSCREEN);
+static int SCREEN_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
+//double length = GetSystemMetrics(SM_CXSCREEN); //屏幕长
+//double width = GetSystemMetrics(SM_CYSCREEN);
 
 /***************************Functions from Huyb**********************************/
 void mouse_move(double dx, double dy);
@@ -55,12 +57,12 @@ void mouse_move(double dx, double dy)
 
 int my_sign(double in)
 {
-    int out = 0;
-    if (in > 0)
-        out = 1;
-    else if (in < 0)
-        out = -1;
-    return out;
+	int out = 0;
+	if (in > 0)
+		out = 1;
+	else if (in < 0)
+		out = -1;
+	return out;
 }
 /***************************Functions from Huyb**********************************/
 
@@ -71,47 +73,47 @@ int my_sign(double in)
 
 
 
-void coordtransfer(int x_pre,int y_pre,int & x_done, int & y_done)
+void coordtransfer(float x_pre, float y_pre, float & x_done, float & y_done)
 {
-	double length= GetSystemMetrics(   SM_CXSCREEN   ); //屏幕长
-	double width=   GetSystemMetrics(   SM_CYSCREEN   );  //屏幕宽
-	double x_standard1,y_standard1;  //kinect左下角
-	double x_standard2,y_standard2;  //kinect右下角
-	double x_standard3,y_standard3;  //kinect左上角
-	
-	x_standard1=kinectPoints[0].first;
-	y_standard1=kinectPoints[0].second;
-	x_standard2=kinectPoints[1].first;
-	y_standard2=kinectPoints[1].second;
-	x_standard3=kinectPoints[2].first;
-	y_standard3=kinectPoints[2].second;
-	
-	
-	double p1=x_standard1-x_standard3;
-	double q1=y_standard1-y_standard3;
-	double p2=x_standard2-x_standard1;
-	double q2=y_standard2-y_standard1;
-	double a=(double)-q1*length/(p1*q2-q1*p2);
-	double b=(double) p1*length/(p1*q2-q1*p2);
-	double c=(double)q2*width/(p1*q2-q1*p2);
-	double d=(double)-p2*width/(p1*q2-q1*p2);
+	double length = GetSystemMetrics(SM_CXSCREEN); //屏幕长
+	double width = GetSystemMetrics(SM_CYSCREEN);  //屏幕宽
+	double x_standard1, y_standard1;  //kinect左下角
+	double x_standard2, y_standard2;  //kinect右下角
+	double x_standard3, y_standard3;  //kinect左上角
 
-	x_done=a*(x_pre-x_standard3)+b*(y_pre-y_standard3);
-	y_done=c*(x_pre-x_standard3)+d*(y_pre-y_standard3);
+	x_standard1 = kinectPoints[0].first;
+	y_standard1 = kinectPoints[0].second;
+	x_standard2 = kinectPoints[1].first;
+	y_standard2 = kinectPoints[1].second;
+	x_standard3 = kinectPoints[2].first;
+	y_standard3 = kinectPoints[2].second;
+
+
+	double p1 = x_standard1 - x_standard3;
+	double q1 = y_standard1 - y_standard3;
+	double p2 = x_standard2 - x_standard1;
+	double q2 = y_standard2 - y_standard1;
+	double a = (double)-q1*length / (p1*q2 - q1*p2);
+	double b = (double)p1*length / (p1*q2 - q1*p2);
+	double c = (double)q2*width / (p1*q2 - q1*p2);
+	double d = (double)-p2*width / (p1*q2 - q1*p2);
+
+	x_done = a*(x_pre - x_standard3) + b*(y_pre - y_standard3);
+	y_done = c*(x_pre - x_standard3) + d*(y_pre - y_standard3);
 }
 
 void mouse_press(double x, double y)
 {
-	SetCursorPos(x, y);
-	mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);    
-    mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);  
+	//SetCursorPos(x, y);
+	mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+	mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
 
 }
 
-void mouse_lift(double x,double y)
+void mouse_lift(double x, double y)
 {
-	SetCursorPos(x, y); 
-    mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);  
+	//SetCursorPos(x, y);
+	mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
 }
 /***************************Functions from wzy********************************/
 
@@ -124,74 +126,74 @@ void mouse_lift(double x,double y)
 /// <param name="lpCmdLine">command line arguments</param>
 /// <param name="nCmdShow">whether to display minimized, maximized, or normally</param>
 /// <returns>status</returns>
-int APIENTRY wWinMain(    
+int APIENTRY wWinMain(
 	_In_ HINSTANCE hInstance,
-    _In_opt_ HINSTANCE hPrevInstance,
-    _In_ LPWSTR lpCmdLine,
-    _In_ int nShowCmd
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR lpCmdLine,
+	_In_ int nShowCmd
 )
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
 
-    CBodyBasics application;
-    application.Run(hInstance, nShowCmd);
+	CBodyBasics application;
+	application.Run(hInstance, nShowCmd);
 }
 
 /// <summary>
 /// Constructor
 /// </summary>
 CBodyBasics::CBodyBasics() :
-    m_hWnd(NULL),
-    m_nStartTime(0),
-    m_nLastCounter(0),
-    m_nFramesSinceUpdate(0),
-    m_fFreq(0),
-    m_nNextStatusTime(0LL),
-    m_pKinectSensor(NULL),
-    m_pCoordinateMapper(NULL),
-    m_pBodyFrameReader(NULL),
-    m_pD2DFactory(NULL),
-    m_pRenderTarget(NULL),
-    m_pBrushJointTracked(NULL),
-    m_pBrushJointInferred(NULL),
-    m_pBrushBoneTracked(NULL),
-    m_pBrushBoneInferred(NULL),
-    m_pBrushHandClosed(NULL),
-    m_pBrushHandOpen(NULL),
-    m_pBrushHandLasso(NULL)
+	m_hWnd(NULL),
+	m_nStartTime(0),
+	m_nLastCounter(0),
+	m_nFramesSinceUpdate(0),
+	m_fFreq(0),
+	m_nNextStatusTime(0LL),
+	m_pKinectSensor(NULL),
+	m_pCoordinateMapper(NULL),
+	m_pBodyFrameReader(NULL),
+	m_pD2DFactory(NULL),
+	m_pRenderTarget(NULL),
+	m_pBrushJointTracked(NULL),
+	m_pBrushJointInferred(NULL),
+	m_pBrushBoneTracked(NULL),
+	m_pBrushBoneInferred(NULL),
+	m_pBrushHandClosed(NULL),
+	m_pBrushHandOpen(NULL),
+	m_pBrushHandLasso(NULL)
 {
-    LARGE_INTEGER qpf = {0};
-    if (QueryPerformanceFrequency(&qpf))
-    {
-        m_fFreq = double(qpf.QuadPart);
-    }
+	LARGE_INTEGER qpf = { 0 };
+	if (QueryPerformanceFrequency(&qpf))
+	{
+		m_fFreq = double(qpf.QuadPart);
+	}
 }
-  
+
 
 /// <summary>
 /// Destructor
 /// </summary>
 CBodyBasics::~CBodyBasics()
 {
-    DiscardDirect2DResources();
+	DiscardDirect2DResources();
 
-    // clean up Direct2D
-    SafeRelease(m_pD2DFactory);
+	// clean up Direct2D
+	SafeRelease(m_pD2DFactory);
 
-    // done with body frame reader
-    SafeRelease(m_pBodyFrameReader);
+	// done with body frame reader
+	SafeRelease(m_pBodyFrameReader);
 
-    // done with coordinate mapper
-    SafeRelease(m_pCoordinateMapper);
+	// done with coordinate mapper
+	SafeRelease(m_pCoordinateMapper);
 
-    // close the Kinect Sensor
-    if (m_pKinectSensor)
-    {
-        m_pKinectSensor->Close();
-    }
+	// close the Kinect Sensor
+	if (m_pKinectSensor)
+	{
+		m_pKinectSensor->Close();
+	}
 
-    SafeRelease(m_pKinectSensor);
+	SafeRelease(m_pKinectSensor);
 }
 
 /// <summary>
@@ -201,56 +203,56 @@ CBodyBasics::~CBodyBasics()
 /// <param name="nCmdShow">whether to display minimized, maximized, or normally</param>
 int CBodyBasics::Run(HINSTANCE hInstance, int nCmdShow)
 {
-    MSG       msg = {0};
-    WNDCLASS  wc;
+	MSG       msg = { 0 };
+	WNDCLASS  wc;
 
-    // Dialog custom window class
-    ZeroMemory(&wc, sizeof(wc));
-    wc.style         = CS_HREDRAW | CS_VREDRAW;
-    wc.cbWndExtra    = DLGWINDOWEXTRA;
-    wc.hCursor       = LoadCursorW(NULL, IDC_ARROW);
-    wc.hIcon         = LoadIconW(hInstance, MAKEINTRESOURCE(IDI_APP));
-    wc.lpfnWndProc   = DefDlgProcW;
-    wc.lpszClassName = L"BodyBasicsAppDlgWndClass";
+	// Dialog custom window class
+	ZeroMemory(&wc, sizeof(wc));
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.cbWndExtra = DLGWINDOWEXTRA;
+	wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
+	wc.hIcon = LoadIconW(hInstance, MAKEINTRESOURCE(IDI_APP));
+	wc.lpfnWndProc = DefDlgProcW;
+	wc.lpszClassName = L"BodyBasicsAppDlgWndClass";
 
-    if (!RegisterClassW(&wc))
-    {
-        return 0;
-    }
+	if (!RegisterClassW(&wc))
+	{
+		return 0;
+	}
 
-    // Create main application window
-    HWND hWndApp = CreateDialogParamW(
-        NULL,
-        MAKEINTRESOURCE(IDD_APP),
-        NULL,
-        (DLGPROC)CBodyBasics::MessageRouter, 
-        reinterpret_cast<LPARAM>(this));
+	// Create main application window
+	HWND hWndApp = CreateDialogParamW(
+		NULL,
+		MAKEINTRESOURCE(IDD_APP),
+		NULL,
+		(DLGPROC)CBodyBasics::MessageRouter,
+		reinterpret_cast<LPARAM>(this));
 
-    // Show window
-    ShowWindow(hWndApp, nCmdShow);
+	// Show window
+	ShowWindow(hWndApp, nCmdShow);
 
 	//Calibrate
 
 
-    // Main message loop
-    while (WM_QUIT != msg.message)
-    {
-        Update();
+	// Main message loop
+	while (WM_QUIT != msg.message)
+	{
+		Update();
 
-        while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
-        {
-            // If a dialog message will be taken care of by the dialog proc
-            if (hWndApp && IsDialogMessageW(hWndApp, &msg))
-            {
-                continue;
-            }
+		while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			// If a dialog message will be taken care of by the dialog proc
+			if (hWndApp && IsDialogMessageW(hWndApp, &msg))
+			{
+				continue;
+			}
 
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-        }
-    }
+			TranslateMessage(&msg);
+			DispatchMessageW(&msg);
+		}
+	}
 
-    return static_cast<int>(msg.wParam);
+	return static_cast<int>(msg.wParam);
 }
 
 /// <summary>
@@ -258,40 +260,40 @@ int CBodyBasics::Run(HINSTANCE hInstance, int nCmdShow)
 /// </summary>
 void CBodyBasics::Update()
 {
-    if (!m_pBodyFrameReader)
-    {
-        return;
-    }
+	if (!m_pBodyFrameReader)
+	{
+		return;
+	}
 
-    IBodyFrame* pBodyFrame = NULL;
+	IBodyFrame* pBodyFrame = NULL;
 
-    HRESULT hr = m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
+	HRESULT hr = m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
 
-    if (SUCCEEDED(hr))
-    {
-        INT64 nTime = 0;
+	if (SUCCEEDED(hr))
+	{
+		INT64 nTime = 0;
 
-        hr = pBodyFrame->get_RelativeTime(&nTime);
+		hr = pBodyFrame->get_RelativeTime(&nTime);
 
-        IBody* ppBodies[BODY_COUNT] = {0};
+		IBody* ppBodies[BODY_COUNT] = { 0 };
 
-        if (SUCCEEDED(hr))
-        {
-            hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
-        }
+		if (SUCCEEDED(hr))
+		{
+			hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
+		}
 
-        if (SUCCEEDED(hr))
-        {
-            ProcessBody(nTime, BODY_COUNT, ppBodies);
-        }
+		if (SUCCEEDED(hr))
+		{
+			ProcessBody(nTime, BODY_COUNT, ppBodies);
+		}
 
-        for (int i = 0; i < _countof(ppBodies); ++i)
-        {
-            SafeRelease(ppBodies[i]);
-        }
-    }
+		for (int i = 0; i < _countof(ppBodies); ++i)
+		{
+			SafeRelease(ppBodies[i]);
+		}
+	}
 
-    SafeRelease(pBodyFrame);
+	SafeRelease(pBodyFrame);
 }
 
 /// <summary>
@@ -304,24 +306,24 @@ void CBodyBasics::Update()
 /// <returns>result of message processing</returns>
 LRESULT CALLBACK CBodyBasics::MessageRouter(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    CBodyBasics* pThis = NULL;
-    
-    if (WM_INITDIALOG == uMsg)
-    {
-        pThis = reinterpret_cast<CBodyBasics*>(lParam);
-        SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-    }
-    else
-    {
-        pThis = reinterpret_cast<CBodyBasics*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
-    }
+	CBodyBasics* pThis = NULL;
 
-    if (pThis)
-    {
-        return pThis->DlgProc(hWnd, uMsg, wParam, lParam);
-    }
+	if (WM_INITDIALOG == uMsg)
+	{
+		pThis = reinterpret_cast<CBodyBasics*>(lParam);
+		SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
+	}
+	else
+	{
+		pThis = reinterpret_cast<CBodyBasics*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+	}
 
-    return 0;
+	if (pThis)
+	{
+		return pThis->DlgProc(hWnd, uMsg, wParam, lParam);
+	}
+
+	return 0;
 }
 
 /// <summary>
@@ -334,36 +336,36 @@ LRESULT CALLBACK CBodyBasics::MessageRouter(HWND hWnd, UINT uMsg, WPARAM wParam,
 /// <returns>result of message processing</returns>
 LRESULT CALLBACK CBodyBasics::DlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    UNREFERENCED_PARAMETER(wParam);
-    UNREFERENCED_PARAMETER(lParam);
+	UNREFERENCED_PARAMETER(wParam);
+	UNREFERENCED_PARAMETER(lParam);
 
-    switch (message)
-    {
-        case WM_INITDIALOG:
-        {
-            // Bind application window handle
-            m_hWnd = hWnd;
+	switch (message)
+	{
+	case WM_INITDIALOG:
+	{
+		// Bind application window handle
+		m_hWnd = hWnd;
 
-            // Init Direct2D
-            D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pD2DFactory);
+		// Init Direct2D
+		D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pD2DFactory);
 
-            // Get and initialize the default Kinect sensor
-            InitializeDefaultSensor();
-        }
-        break;
+		// Get and initialize the default Kinect sensor
+		InitializeDefaultSensor();
+	}
+	break;
 
-        // If the titlebar X is clicked, destroy app
-        case WM_CLOSE:
-            DestroyWindow(hWnd);
-            break;
+	// If the titlebar X is clicked, destroy app
+	case WM_CLOSE:
+		DestroyWindow(hWnd);
+		break;
 
-        case WM_DESTROY:
-            // Quit the main message pump
-            PostQuitMessage(0);
-            break;
-    }
+	case WM_DESTROY:
+		// Quit the main message pump
+		PostQuitMessage(0);
+		break;
+	}
 
-    return FALSE;
+	return FALSE;
 }
 
 /// <summary>
@@ -372,46 +374,46 @@ LRESULT CALLBACK CBodyBasics::DlgProc(HWND hWnd, UINT message, WPARAM wParam, LP
 /// <returns>indicates success or failure</returns>
 HRESULT CBodyBasics::InitializeDefaultSensor()
 {
-    HRESULT hr;
+	HRESULT hr;
 
-    hr = GetDefaultKinectSensor(&m_pKinectSensor);
-    if (FAILED(hr))
-    {
-        return hr;
-    }
+	hr = GetDefaultKinectSensor(&m_pKinectSensor);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
 
-    if (m_pKinectSensor)
-    {
-        // Initialize the Kinect and get coordinate mapper and the body reader
-        IBodyFrameSource* pBodyFrameSource = NULL;
+	if (m_pKinectSensor)
+	{
+		// Initialize the Kinect and get coordinate mapper and the body reader
+		IBodyFrameSource* pBodyFrameSource = NULL;
 
-        hr = m_pKinectSensor->Open();
+		hr = m_pKinectSensor->Open();
 
-        if (SUCCEEDED(hr))
-        {
-            hr = m_pKinectSensor->get_CoordinateMapper(&m_pCoordinateMapper);
-        }
+		if (SUCCEEDED(hr))
+		{
+			hr = m_pKinectSensor->get_CoordinateMapper(&m_pCoordinateMapper);
+		}
 
-        if (SUCCEEDED(hr))
-        {
-            hr = m_pKinectSensor->get_BodyFrameSource(&pBodyFrameSource);
-        }
+		if (SUCCEEDED(hr))
+		{
+			hr = m_pKinectSensor->get_BodyFrameSource(&pBodyFrameSource);
+		}
 
-        if (SUCCEEDED(hr))
-        {
-            hr = pBodyFrameSource->OpenReader(&m_pBodyFrameReader);
-        }
+		if (SUCCEEDED(hr))
+		{
+			hr = pBodyFrameSource->OpenReader(&m_pBodyFrameReader);
+		}
 
-        SafeRelease(pBodyFrameSource);
-    }
+		SafeRelease(pBodyFrameSource);
+	}
 
-    if (!m_pKinectSensor || FAILED(hr))
-    {
-        SetStatusMessage(L"No ready Kinect found!", 10000, true);
-        return E_FAIL;
-    }
+	if (!m_pKinectSensor || FAILED(hr))
+	{
+		SetStatusMessage(L"No ready Kinect found!", 10000, true);
+		return E_FAIL;
+	}
 
-    return hr;
+	return hr;
 }
 
 /// <summary>
@@ -422,172 +424,213 @@ HRESULT CBodyBasics::InitializeDefaultSensor()
 /// </summary>
 void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 {
-    if (m_hWnd)
-    {
-        HRESULT hr = EnsureDirect2DResources();
+	if (m_hWnd)
+	{
+		HRESULT hr = EnsureDirect2DResources();
 
-        if (SUCCEEDED(hr) && m_pRenderTarget && m_pCoordinateMapper)
-        {
-            m_pRenderTarget->BeginDraw();
-            m_pRenderTarget->Clear();
+		if (SUCCEEDED(hr) && m_pRenderTarget && m_pCoordinateMapper)
+		{
+			m_pRenderTarget->BeginDraw();
+			m_pRenderTarget->Clear();
 
-            RECT rct;
-            GetClientRect(GetDlgItem(m_hWnd, IDC_VIDEOVIEW), &rct);
-            int width = rct.right;
-            int height = rct.bottom;
+			RECT rct;
+			GetClientRect(GetDlgItem(m_hWnd, IDC_VIDEOVIEW), &rct);
+			int width = rct.right;
+			int height = rct.bottom;
 
-            for (int i = 0; i < nBodyCount; ++i)
-            {
-                IBody* pBody = ppBodies[i];
-                if (pBody)
-                {
-                    BOOLEAN bTracked = false;
-                    hr = pBody->get_IsTracked(&bTracked);
+			for (int i = 0; i < nBodyCount; ++i)
+			{
+				IBody* pBody = ppBodies[i];
+				if (pBody)
+				{
+					BOOLEAN bTracked = false;
+					hr = pBody->get_IsTracked(&bTracked);
 
-                    if (SUCCEEDED(hr) && bTracked)
-                    {
-                        Joint joints[JointType_Count]; 
-                        D2D1_POINT_2F jointPoints[JointType_Count];
-                        HandState leftHandState = HandState_Unknown;
-                        HandState rightHandState = HandState_Unknown;
+					if (SUCCEEDED(hr) && bTracked)
+					{
+						Joint joints[JointType_Count];
+						D2D1_POINT_2F jointPoints[JointType_Count];
+						HandState leftHandState = HandState_Unknown;
+						HandState rightHandState = HandState_Unknown;
 
-                        pBody->get_HandLeftState(&leftHandState);
-                        pBody->get_HandRightState(&rightHandState);
+						pBody->get_HandLeftState(&leftHandState);
+						pBody->get_HandRightState(&rightHandState);
 
 						hr = pBody->GetJoints(_countof(joints), joints);
 
-                        /*******************BY Huyb***************/
-						float temp_x_in_space = 0, temp_y_in_space = 0, temp_x_on_screen, temp_y_on_screen;
-						float d_x = 0, d_y = 0;
-						float x_ratio, y_ratio;
+						std::ofstream fp("test.txt", std::ios::app);
 
-						x_ratio = SCREEN_WIDTH / 2;
-						y_ratio = SCREEN_HEIGHT / 2;
-						if (joints[JointType_HandRight].TrackingState == TrackingState_Tracked)
+						//if (!has_caliborate) {
+						if(0)
 						{
-							std::ofstream fp("test.txt", std::ios::app);
+							float temp_x_in_space = 0, temp_y_in_space = 0, temp_x_on_screen = 0, temp_y_on_screen = 0;
+							float d_x = 0, d_y = 0;
+							float x_ratio, y_ratio;
 
+							x_ratio = SCREEN_WIDTH / 2;
+							y_ratio = SCREEN_HEIGHT / 2;
 							temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
 							temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
-							coordinate(temp_x_in_space,temp_y_in_space,current_x_on_screen,current_x_on_screen);
+							//coordtransfer(temp_x_in_space, temp_y_in_space, temp_x_on_screen, temp_x_on_screen);
+
 							
-							/*
 							d_x = x_ratio*(temp_x_in_space - current_x_in_space);
 							d_y = y_ratio*(temp_y_in_space - current_y_in_space);
+							
+							//d_x = temp_x_on_screen - current_x_on_screen;
+							//d_y = temp_y_on_screen - current_y_on_screen;
+
 							if (current_x_in_space != 0 && current_y_in_space != 0)//第一次不动
 							{
 								mouse_move(d_x, d_y);
 							}
-							current_x_on_screen = current_x_on_screen + d_x;
-							current_y_on_screen = current_y_on_screen + d_y;
+							current_x_on_screen = temp_x_on_screen;
+							current_y_on_screen = temp_y_on_screen;
 							current_x_in_space = temp_x_in_space;
 							current_y_in_space = temp_y_in_space;
 
-							fp << "current ordinate:\n screen{ x:" << current_x_on_screen << ",y:" << current_y_on_screen <<
-								"};space{ x:" << current_x_in_space << ",y:" << current_y_in_space << "};d{ x:" << d_x << ",y:" << d_y << "}\n";
-							*/
-							/*下面是绝对移动*/
-							/*
-							temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
-							temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
-							temp_x_on_screen = x_ratio * temp_x_in_space;
-							temp_y_on_screen = y_ratio * temp_y_in_space;
-							d_x = temp_x_on_screen - current_x_on_screen;
-							d_y = temp_y_on_screen - current_y_on_screen;
-							if (current_x_in_space != 0 && current_y_in_space != 0)//第一次不动
-							{
-							mouse_move(d_x, d_y);
+							//fp << "current ordinate:\n screen{ x:" << current_x_on_screen << ",y:" << current_y_on_screen <<
+							//	"};space{ x:" << current_x_in_space << ",y:" << current_y_in_space << "};d{ x:" << d_x << ",y:" << d_y << "}\n";
+							//caliborate, 记录两个坐标系对应关系
+							fp << fabs(joints[JointType_ThumbRight].Position.Y - joints[JointType_HandRight].Position.Y) << '\n';
+							if (kinectPoints.size()<points_num && fabs(joints[JointType_ThumbRight].Position.Y - joints[JointType_HandRight].Position.Y)>0.5) {
+								kinectPoints.push_back(std::pair<double, double>(joints[JointType_ThumbRight].Position.X, joints[JointType_ThumbRight].Position.Y));
+								fp << "===================thumb up!!====================\n";
+								fp << "location{ x:" << kinectPoints.back().first << ",y:" << kinectPoints.back().second << "};\n";
 							}
-							current_x_in_space = temp_x_in_space;
-							current_y_in_space = temp_y_in_space;
-
-							fp.close();
-							*/
-
+							else if (kinectPoints.size() == points_num) {
+								has_caliborate = TRUE;
+								fp << "=====================ALREADY SET!====================\n";
+							}
 						}
 						else
 						{
-						}
-                        /**************By Huyb*************************/
+							/*******************BY Huyb***************/
+							float temp_x_in_space = 0, temp_y_in_space = 0, temp_x_on_screen = 0, temp_y_on_screen = 0;
+							float d_x = 0, d_y = 0;
+							float x_ratio, y_ratio;
 
-						/**********wzy********************************/
-						
-						if (rightHandState == 3)
-						{
-							right_hand_flag = FALSE;
-							mouse_lift(current_x_on_screen,current_y_on_screen);
-						}
-						else if (rightHandState == 2 && right_hand_flag == FALSE)
-						{
-							right_hand_flag=TRUE;
-							mouse_press(current_x_on_screen,current_y_on_screen);
-						}
-						
-						if( !has_caliborate ){
-							//caliborate, 记录两个坐标系对应关系
-							if(kinectPoints.size()<points_num && fabs(joints[JointType_ThumbRight].Position.Y-joints[JointType_HandRight].Position.Y)>20){
-								kinectPoints.push_back(std::pair<double,double>(joints[JointType_ThumbRight].Position.X,joints[JointType_ThumbRight].Position.Y));
-							} else if(kinectPoints.size() == points_num) {
-								has_caliborate = TRUE;
+							x_ratio = SCREEN_WIDTH / 2;
+							y_ratio = SCREEN_HEIGHT / 2;
+							if (joints[JointType_HandRight].TrackingState == TrackingState_Tracked)
+							{
+
+								temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
+								temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
+								//coordtransfer(temp_x_in_space, temp_y_in_space, temp_x_on_screen, temp_x_on_screen);
+
+								
+								d_x = x_ratio*(temp_x_in_space - current_x_in_space);
+								d_y = y_ratio*(temp_y_in_space - current_y_in_space);
+								
+								//d_x = temp_x_on_screen - current_x_on_screen;
+								//d_y = temp_y_on_screen - current_y_on_screen;
+
+								if (current_x_in_space != 0 && current_y_in_space != 0)//第一次不动
+								{
+									mouse_move(d_x, d_y);
+								}
+								current_x_on_screen = temp_x_on_screen;
+								current_y_on_screen = temp_y_on_screen;
+								current_x_in_space = temp_x_in_space;
+								current_y_in_space = temp_y_in_space;
+
+								fp << "current ordinate:\n screen{ x:" << current_x_on_screen << ",y:" << current_y_on_screen <<
+									"};space{ x:" << current_x_in_space << ",y:" << current_y_in_space << "};d{ x:" << d_x << ",y:" << d_y << "}\n";
+
+								/*下面是绝对移动*/
+								/*
+								temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
+								temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
+								temp_x_on_screen = x_ratio * temp_x_in_space;
+								temp_y_on_screen = y_ratio * temp_y_in_space;
+								d_x = temp_x_on_screen - current_x_on_screen;
+								d_y = temp_y_on_screen - current_y_on_screen;
+								if (current_x_in_space != 0 && current_y_in_space != 0)//第一次不动
+								{
+								mouse_move(d_x, d_y);
+								}
+								current_x_in_space = temp_x_in_space;
+								current_y_in_space = temp_y_in_space;
+
+								fp.close();
+								*/
+								/**********wzy********************************/
+								
+								if (rightHandState == 3)
+								{
+									right_hand_flag = FALSE;
+									mouse_lift(current_x_on_screen, current_y_on_screen);
+								}
+								else if (rightHandState == 2 && right_hand_flag == FALSE)
+								{
+									right_hand_flag = TRUE;
+									mouse_press(current_x_on_screen, current_y_on_screen);
+								}
+								
 							}
+							else
+							{
+							}
+							/**************By Huyb*************************/
 						}
 
-                        if (SUCCEEDED(hr))
-                        {
-                            for (int j = 0; j < _countof(joints); ++j)
-                            {
-                                jointPoints[j] = BodyToScreen(joints[j].Position, width, height);
-                            }
+						if (SUCCEEDED(hr))
+						{
+							for (int j = 0; j < _countof(joints); ++j)
+							{
+								jointPoints[j] = BodyToScreen(joints[j].Position, width, height);
+							}
 
-                            DrawBody(joints, jointPoints);
+							DrawBody(joints, jointPoints);
 
-                            DrawHand(leftHandState, jointPoints[JointType_HandLeft]);
-                            DrawHand(rightHandState, jointPoints[JointType_HandRight]);
-                        }
-                    }
-                }
-            }
+							DrawHand(leftHandState, jointPoints[JointType_HandLeft]);
+							DrawHand(rightHandState, jointPoints[JointType_HandRight]);
+						}
+					}
+				}
+			}
 
-            hr = m_pRenderTarget->EndDraw();
+			hr = m_pRenderTarget->EndDraw();
 
-            // Device lost, need to recreate the render target
-            // We'll dispose it now and retry drawing
-            if (D2DERR_RECREATE_TARGET == hr)
-            {
-                hr = S_OK;
-                DiscardDirect2DResources();
-            }
-        }
+			// Device lost, need to recreate the render target
+			// We'll dispose it now and retry drawing
+			if (D2DERR_RECREATE_TARGET == hr)
+			{
+				hr = S_OK;
+				DiscardDirect2DResources();
+			}
+		}
 
-        if (!m_nStartTime)
-        {
-            m_nStartTime = nTime;
-        }
+		if (!m_nStartTime)
+		{
+			m_nStartTime = nTime;
+		}
 
-        double fps = 0.0;
+		double fps = 0.0;
 
-        LARGE_INTEGER qpcNow = {0};
-        if (m_fFreq)
-        {
-            if (QueryPerformanceCounter(&qpcNow))
-            {
-                if (m_nLastCounter)
-                {
-                    m_nFramesSinceUpdate++;
-                    fps = m_fFreq * m_nFramesSinceUpdate / double(qpcNow.QuadPart - m_nLastCounter);
-                }
-            }
-        }
+		LARGE_INTEGER qpcNow = { 0 };
+		if (m_fFreq)
+		{
+			if (QueryPerformanceCounter(&qpcNow))
+			{
+				if (m_nLastCounter)
+				{
+					m_nFramesSinceUpdate++;
+					fps = m_fFreq * m_nFramesSinceUpdate / double(qpcNow.QuadPart - m_nLastCounter);
+				}
+			}
+		}
 
-        WCHAR szStatusMessage[64];
-        StringCchPrintf(szStatusMessage, _countof(szStatusMessage), L" FPS = %0.2f    Time = %I64d", fps, (nTime - m_nStartTime));
+		WCHAR szStatusMessage[64];
+		StringCchPrintf(szStatusMessage, _countof(szStatusMessage), L" FPS = %0.2f    Time = %I64d", fps, (nTime - m_nStartTime));
 
-        if (SetStatusMessage(szStatusMessage, 1000, false))
-        {
-            m_nLastCounter = qpcNow.QuadPart;
-            m_nFramesSinceUpdate = 0;
-        }
-    }
+		if (SetStatusMessage(szStatusMessage, 1000, false))
+		{
+			m_nLastCounter = qpcNow.QuadPart;
+			m_nFramesSinceUpdate = 0;
+		}
+	}
 }
 
 /// <summary>
@@ -598,17 +641,17 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 /// <param name="bForce">force status update</param>
 bool CBodyBasics::SetStatusMessage(_In_z_ WCHAR* szMessage, DWORD nShowTimeMsec, bool bForce)
 {
-    INT64 now = GetTickCount64();
+	INT64 now = GetTickCount64();
 
-    if (m_hWnd && (bForce || (m_nNextStatusTime <= now)))
-    {
-        SetDlgItemText(m_hWnd, IDC_STATUS, szMessage);
-        m_nNextStatusTime = now + nShowTimeMsec;
+	if (m_hWnd && (bForce || (m_nNextStatusTime <= now)))
+	{
+		SetDlgItemText(m_hWnd, IDC_STATUS, szMessage);
+		m_nNextStatusTime = now + nShowTimeMsec;
 
-        return true;
-    }
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 /// <summary>
@@ -617,46 +660,46 @@ bool CBodyBasics::SetStatusMessage(_In_z_ WCHAR* szMessage, DWORD nShowTimeMsec,
 /// <returns>S_OK if successful, otherwise an error code</returns>
 HRESULT CBodyBasics::EnsureDirect2DResources()
 {
-    HRESULT hr = S_OK;
+	HRESULT hr = S_OK;
 
-    if (m_pD2DFactory && !m_pRenderTarget)
-    {
-        RECT rc;
-        GetWindowRect(GetDlgItem(m_hWnd, IDC_VIDEOVIEW), &rc);  
+	if (m_pD2DFactory && !m_pRenderTarget)
+	{
+		RECT rc;
+		GetWindowRect(GetDlgItem(m_hWnd, IDC_VIDEOVIEW), &rc);
 
-        int width = rc.right - rc.left;
-        int height = rc.bottom - rc.top;
-        D2D1_SIZE_U size = D2D1::SizeU(width, height);
-        D2D1_RENDER_TARGET_PROPERTIES rtProps = D2D1::RenderTargetProperties();
-        rtProps.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE);
-        rtProps.usage = D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE;
+		int width = rc.right - rc.left;
+		int height = rc.bottom - rc.top;
+		D2D1_SIZE_U size = D2D1::SizeU(width, height);
+		D2D1_RENDER_TARGET_PROPERTIES rtProps = D2D1::RenderTargetProperties();
+		rtProps.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE);
+		rtProps.usage = D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE;
 
-        // Create a Hwnd render target, in order to render to the window set in initialize
-        hr = m_pD2DFactory->CreateHwndRenderTarget(
-            rtProps,
-            D2D1::HwndRenderTargetProperties(GetDlgItem(m_hWnd, IDC_VIDEOVIEW), size),
-            &m_pRenderTarget
-        );
+		// Create a Hwnd render target, in order to render to the window set in initialize
+		hr = m_pD2DFactory->CreateHwndRenderTarget(
+			rtProps,
+			D2D1::HwndRenderTargetProperties(GetDlgItem(m_hWnd, IDC_VIDEOVIEW), size),
+			&m_pRenderTarget
+		);
 
-        if (FAILED(hr))
-        {
-            SetStatusMessage(L"Couldn't create Direct2D render target!", 10000, true);
-            return hr;
-        }
+		if (FAILED(hr))
+		{
+			SetStatusMessage(L"Couldn't create Direct2D render target!", 10000, true);
+			return hr;
+		}
 
-        // light green
-        m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(0.27f, 0.75f, 0.27f), &m_pBrushJointTracked);
+		// light green
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(0.27f, 0.75f, 0.27f), &m_pBrushJointTracked);
 
-        m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow, 1.0f), &m_pBrushJointInferred);
-        m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green, 1.0f), &m_pBrushBoneTracked);
-        m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Gray, 1.0f), &m_pBrushBoneInferred);
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow, 1.0f), &m_pBrushJointInferred);
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green, 1.0f), &m_pBrushBoneTracked);
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Gray, 1.0f), &m_pBrushBoneInferred);
 
-        m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red, 0.5f), &m_pBrushHandClosed);
-        m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green, 0.5f), &m_pBrushHandOpen);
-        m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Blue, 0.5f), &m_pBrushHandLasso);
-    }
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red, 0.5f), &m_pBrushHandClosed);
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green, 0.5f), &m_pBrushHandOpen);
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Blue, 0.5f), &m_pBrushHandLasso);
+	}
 
-    return hr;
+	return hr;
 }
 
 /// <summary>
@@ -664,16 +707,16 @@ HRESULT CBodyBasics::EnsureDirect2DResources()
 /// </summary>
 void CBodyBasics::DiscardDirect2DResources()
 {
-    SafeRelease(m_pRenderTarget);
+	SafeRelease(m_pRenderTarget);
 
-    SafeRelease(m_pBrushJointTracked);
-    SafeRelease(m_pBrushJointInferred);
-    SafeRelease(m_pBrushBoneTracked);
-    SafeRelease(m_pBrushBoneInferred);
+	SafeRelease(m_pBrushJointTracked);
+	SafeRelease(m_pBrushJointInferred);
+	SafeRelease(m_pBrushBoneTracked);
+	SafeRelease(m_pBrushBoneInferred);
 
-    SafeRelease(m_pBrushHandClosed);
-    SafeRelease(m_pBrushHandOpen);
-    SafeRelease(m_pBrushHandLasso);
+	SafeRelease(m_pBrushHandClosed);
+	SafeRelease(m_pBrushHandOpen);
+	SafeRelease(m_pBrushHandLasso);
 }
 
 /// <summary>
@@ -685,14 +728,14 @@ void CBodyBasics::DiscardDirect2DResources()
 /// <returns>point in screen-space</returns>
 D2D1_POINT_2F CBodyBasics::BodyToScreen(const CameraSpacePoint& bodyPoint, int width, int height)
 {
-    // Calculate the body's position on the screen
-    DepthSpacePoint depthPoint = {0};
-    m_pCoordinateMapper->MapCameraPointToDepthSpace(bodyPoint, &depthPoint);
+	// Calculate the body's position on the screen
+	DepthSpacePoint depthPoint = { 0 };
+	m_pCoordinateMapper->MapCameraPointToDepthSpace(bodyPoint, &depthPoint);
 
-    float screenPointX = static_cast<float>(depthPoint.X * width) / cDepthWidth;
-    float screenPointY = static_cast<float>(depthPoint.Y * height) / cDepthHeight;
+	float screenPointX = static_cast<float>(depthPoint.X * width) / cDepthWidth;
+	float screenPointY = static_cast<float>(depthPoint.Y * height) / cDepthHeight;
 
-    return D2D1::Point2F(screenPointX, screenPointY);
+	return D2D1::Point2F(screenPointX, screenPointY);
 }
 
 /// <summary>
@@ -702,56 +745,56 @@ D2D1_POINT_2F CBodyBasics::BodyToScreen(const CameraSpacePoint& bodyPoint, int w
 /// <param name="pJointPoints">joint positions converted to screen space</param>
 void CBodyBasics::DrawBody(const Joint* pJoints, const D2D1_POINT_2F* pJointPoints)
 {
-    // Draw the bones
+	// Draw the bones
 
-    // Torso
-    DrawBone(pJoints, pJointPoints, JointType_Head, JointType_Neck);
-    DrawBone(pJoints, pJointPoints, JointType_Neck, JointType_SpineShoulder);
-    DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_SpineMid);
-    DrawBone(pJoints, pJointPoints, JointType_SpineMid, JointType_SpineBase);
-    DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_ShoulderRight);
-    DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_ShoulderLeft);
-    DrawBone(pJoints, pJointPoints, JointType_SpineBase, JointType_HipRight);
-    DrawBone(pJoints, pJointPoints, JointType_SpineBase, JointType_HipLeft);
-    
-    // Right Arm    
-    DrawBone(pJoints, pJointPoints, JointType_ShoulderRight, JointType_ElbowRight);
-    DrawBone(pJoints, pJointPoints, JointType_ElbowRight, JointType_WristRight);
-    DrawBone(pJoints, pJointPoints, JointType_WristRight, JointType_HandRight);
-    DrawBone(pJoints, pJointPoints, JointType_HandRight, JointType_HandTipRight);
-    DrawBone(pJoints, pJointPoints, JointType_WristRight, JointType_ThumbRight);
+	// Torso
+	DrawBone(pJoints, pJointPoints, JointType_Head, JointType_Neck);
+	DrawBone(pJoints, pJointPoints, JointType_Neck, JointType_SpineShoulder);
+	DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_SpineMid);
+	DrawBone(pJoints, pJointPoints, JointType_SpineMid, JointType_SpineBase);
+	DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_ShoulderRight);
+	DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_ShoulderLeft);
+	DrawBone(pJoints, pJointPoints, JointType_SpineBase, JointType_HipRight);
+	DrawBone(pJoints, pJointPoints, JointType_SpineBase, JointType_HipLeft);
 
-    // Left Arm
-    DrawBone(pJoints, pJointPoints, JointType_ShoulderLeft, JointType_ElbowLeft);
-    DrawBone(pJoints, pJointPoints, JointType_ElbowLeft, JointType_WristLeft);
-    DrawBone(pJoints, pJointPoints, JointType_WristLeft, JointType_HandLeft);
-    DrawBone(pJoints, pJointPoints, JointType_HandLeft, JointType_HandTipLeft);
-    DrawBone(pJoints, pJointPoints, JointType_WristLeft, JointType_ThumbLeft);
+	// Right Arm    
+	DrawBone(pJoints, pJointPoints, JointType_ShoulderRight, JointType_ElbowRight);
+	DrawBone(pJoints, pJointPoints, JointType_ElbowRight, JointType_WristRight);
+	DrawBone(pJoints, pJointPoints, JointType_WristRight, JointType_HandRight);
+	DrawBone(pJoints, pJointPoints, JointType_HandRight, JointType_HandTipRight);
+	DrawBone(pJoints, pJointPoints, JointType_WristRight, JointType_ThumbRight);
 
-    // Right Leg
-    DrawBone(pJoints, pJointPoints, JointType_HipRight, JointType_KneeRight);
-    DrawBone(pJoints, pJointPoints, JointType_KneeRight, JointType_AnkleRight);
-    DrawBone(pJoints, pJointPoints, JointType_AnkleRight, JointType_FootRight);
+	// Left Arm
+	DrawBone(pJoints, pJointPoints, JointType_ShoulderLeft, JointType_ElbowLeft);
+	DrawBone(pJoints, pJointPoints, JointType_ElbowLeft, JointType_WristLeft);
+	DrawBone(pJoints, pJointPoints, JointType_WristLeft, JointType_HandLeft);
+	DrawBone(pJoints, pJointPoints, JointType_HandLeft, JointType_HandTipLeft);
+	DrawBone(pJoints, pJointPoints, JointType_WristLeft, JointType_ThumbLeft);
 
-    // Left Leg
-    DrawBone(pJoints, pJointPoints, JointType_HipLeft, JointType_KneeLeft);
-    DrawBone(pJoints, pJointPoints, JointType_KneeLeft, JointType_AnkleLeft);
-    DrawBone(pJoints, pJointPoints, JointType_AnkleLeft, JointType_FootLeft);
+	// Right Leg
+	DrawBone(pJoints, pJointPoints, JointType_HipRight, JointType_KneeRight);
+	DrawBone(pJoints, pJointPoints, JointType_KneeRight, JointType_AnkleRight);
+	DrawBone(pJoints, pJointPoints, JointType_AnkleRight, JointType_FootRight);
 
-    // Draw the joints
-    for (int i = 0; i < JointType_Count; ++i)
-    {
-        D2D1_ELLIPSE ellipse = D2D1::Ellipse(pJointPoints[i], c_JointThickness, c_JointThickness);
+	// Left Leg
+	DrawBone(pJoints, pJointPoints, JointType_HipLeft, JointType_KneeLeft);
+	DrawBone(pJoints, pJointPoints, JointType_KneeLeft, JointType_AnkleLeft);
+	DrawBone(pJoints, pJointPoints, JointType_AnkleLeft, JointType_FootLeft);
 
-        if (pJoints[i].TrackingState == TrackingState_Inferred)
-        {
-            m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointInferred);
-        }
-        else if (pJoints[i].TrackingState == TrackingState_Tracked)
-        {
-            m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointTracked);
-        }
-    }
+	// Draw the joints
+	for (int i = 0; i < JointType_Count; ++i)
+	{
+		D2D1_ELLIPSE ellipse = D2D1::Ellipse(pJointPoints[i], c_JointThickness, c_JointThickness);
+
+		if (pJoints[i].TrackingState == TrackingState_Inferred)
+		{
+			m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointInferred);
+		}
+		else if (pJoints[i].TrackingState == TrackingState_Tracked)
+		{
+			m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointTracked);
+		}
+	}
 }
 
 /// <summary>
@@ -764,30 +807,30 @@ void CBodyBasics::DrawBody(const Joint* pJoints, const D2D1_POINT_2F* pJointPoin
 /// <param name="joint1">other joint of the bone to draw</param>
 void CBodyBasics::DrawBone(const Joint* pJoints, const D2D1_POINT_2F* pJointPoints, JointType joint0, JointType joint1)
 {
-    TrackingState joint0State = pJoints[joint0].TrackingState;
-    TrackingState joint1State = pJoints[joint1].TrackingState;
+	TrackingState joint0State = pJoints[joint0].TrackingState;
+	TrackingState joint1State = pJoints[joint1].TrackingState;
 
-    // If we can't find either of these joints, exit
-    if ((joint0State == TrackingState_NotTracked) || (joint1State == TrackingState_NotTracked))
-    {
-        return;
-    }
+	// If we can't find either of these joints, exit
+	if ((joint0State == TrackingState_NotTracked) || (joint1State == TrackingState_NotTracked))
+	{
+		return;
+	}
 
-    // Don't draw if both points are inferred
-    if ((joint0State == TrackingState_Inferred) && (joint1State == TrackingState_Inferred))
-    {
-        return;
-    }
+	// Don't draw if both points are inferred
+	if ((joint0State == TrackingState_Inferred) && (joint1State == TrackingState_Inferred))
+	{
+		return;
+	}
 
-    // We assume all drawn bones are inferred unless BOTH joints are tracked
-    if ((joint0State == TrackingState_Tracked) && (joint1State == TrackingState_Tracked))
-    {
-        m_pRenderTarget->DrawLine(pJointPoints[joint0], pJointPoints[joint1], m_pBrushBoneTracked, c_TrackedBoneThickness);
-    }
-    else
-    {
-        m_pRenderTarget->DrawLine(pJointPoints[joint0], pJointPoints[joint1], m_pBrushBoneInferred, c_InferredBoneThickness);
-    }
+	// We assume all drawn bones are inferred unless BOTH joints are tracked
+	if ((joint0State == TrackingState_Tracked) && (joint1State == TrackingState_Tracked))
+	{
+		m_pRenderTarget->DrawLine(pJointPoints[joint0], pJointPoints[joint1], m_pBrushBoneTracked, c_TrackedBoneThickness);
+	}
+	else
+	{
+		m_pRenderTarget->DrawLine(pJointPoints[joint0], pJointPoints[joint1], m_pBrushBoneInferred, c_InferredBoneThickness);
+	}
 }
 
 /// <summary>
@@ -797,20 +840,20 @@ void CBodyBasics::DrawBone(const Joint* pJoints, const D2D1_POINT_2F* pJointPoin
 /// <param name="handPosition">position of the hand</param>
 void CBodyBasics::DrawHand(HandState handState, const D2D1_POINT_2F& handPosition)
 {
-    D2D1_ELLIPSE ellipse = D2D1::Ellipse(handPosition, c_HandSize, c_HandSize);
+	D2D1_ELLIPSE ellipse = D2D1::Ellipse(handPosition, c_HandSize, c_HandSize);
 
-    switch (handState)
-    {
-        case HandState_Closed:
-            m_pRenderTarget->FillEllipse(ellipse, m_pBrushHandClosed);
-            break;
+	switch (handState)
+	{
+	case HandState_Closed:
+		m_pRenderTarget->FillEllipse(ellipse, m_pBrushHandClosed);
+		break;
 
-        case HandState_Open:
-            m_pRenderTarget->FillEllipse(ellipse, m_pBrushHandOpen);
-            break;
+	case HandState_Open:
+		m_pRenderTarget->FillEllipse(ellipse, m_pBrushHandOpen);
+		break;
 
-        case HandState_Lasso:
-            m_pRenderTarget->FillEllipse(ellipse, m_pBrushHandLasso);
-            break;
-    }
+	case HandState_Lasso:
+		m_pRenderTarget->FillEllipse(ellipse, m_pBrushHandLasso);
+		break;
+	}
 }
