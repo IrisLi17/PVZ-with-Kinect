@@ -24,6 +24,7 @@ static const float c_HandSize = 30.0f;
 
 static bool left_hand_flag = FALSE;
 static bool right_hand_flag = FALSE;
+static bool right_hand_transfer_flag=FALSE;
 static bool has_caliborate = FALSE;
 static std::vector<std::pair<double, double>> kinectPoints;
 static float current_x_in_space = 0;
@@ -465,48 +466,23 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 
 						std::ofstream fp("test.txt", std::ios::app);
 
-						//if (!has_caliborate) {
-						if(0)
+						if (!has_caliborate) 
 						{
-							float temp_x_in_space = 0, temp_y_in_space = 0, temp_x_on_screen = 0, temp_y_on_screen = 0;
-							float d_x = 0, d_y = 0;
-							float x_ratio, y_ratio;
-
-							x_ratio = SCREEN_WIDTH / 2;
-							y_ratio = SCREEN_HEIGHT / 2;
-							temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
-							temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
-							//coordtransfer(temp_x_in_space, temp_y_in_space, temp_x_on_screen, temp_x_on_screen);
-
 							
-							d_x = x_ratio*(temp_x_in_space - current_x_in_space);
-							d_y = y_ratio*(temp_y_in_space - current_y_in_space);
-							
-							//d_x = temp_x_on_screen - current_x_on_screen;
-							//d_y = temp_y_on_screen - current_y_on_screen;
-
-							if (current_x_in_space != 0 && current_y_in_space != 0)//第一次不动
-							{
-								mouse_move(d_x, d_y);
-							}
-							current_x_on_screen = temp_x_on_screen;
-							current_y_on_screen = temp_y_on_screen;
-							current_x_in_space = temp_x_in_space;
-							current_y_in_space = temp_y_in_space;
-
-							//fp << "current ordinate:\n screen{ x:" << current_x_on_screen << ",y:" << current_y_on_screen <<
-							//	"};space{ x:" << current_x_in_space << ",y:" << current_y_in_space << "};d{ x:" << d_x << ",y:" << d_y << "}\n";
-							//caliborate, 记录两个坐标系对应关系
 							fp << fabs(joints[JointType_ThumbRight].Position.Y - joints[JointType_HandRight].Position.Y) << '\n';
-							if (kinectPoints.size()<points_num && fabs(joints[JointType_ThumbRight].Position.Y - joints[JointType_HandRight].Position.Y)>0.5) {
+							if (kinectPoints.size()<points_num && rightHandState == 2 && right_hand_transfer_flag == FALSE) {
 								kinectPoints.push_back(std::pair<double, double>(joints[JointType_ThumbRight].Position.X, joints[JointType_ThumbRight].Position.Y));
 								fp << "===================thumb up!!====================\n";
 								fp << "location{ x:" << kinectPoints.back().first << ",y:" << kinectPoints.back().second << "};\n";
+								right_hand_transfer_flag = TRUE;
 							}
 							else if (kinectPoints.size() == points_num) {
 								has_caliborate = TRUE;
 								fp << "=====================ALREADY SET!====================\n";
 
+							}
+							else if(rightHandState == 3) {
+								right_hand_transfer_flag = FALSE;
 							}
 						}
 						else
@@ -523,14 +499,14 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 
 								temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
 								temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
-								//coordtransfer(temp_x_in_space, temp_y_in_space, temp_x_on_screen, temp_x_on_screen);
+								coordtransfer(temp_x_in_space, temp_y_in_space, temp_x_on_screen, temp_x_on_screen);
 
 								
-								d_x = x_ratio*(temp_x_in_space - current_x_in_space);
-								d_y = y_ratio*(temp_y_in_space - current_y_in_space);
+								//d_x = x_ratio*(temp_x_in_space - current_x_in_space);
+								//d_y = y_ratio*(temp_y_in_space - current_y_in_space);
 								
-								//d_x = temp_x_on_screen - current_x_on_screen;
-								//d_y = temp_y_on_screen - current_y_on_screen;
+								d_x = temp_x_on_screen - current_x_on_screen;
+								d_y = temp_y_on_screen - current_y_on_screen;
 
 								if (current_x_in_space != 0 && current_y_in_space != 0)//第一次不动
 								{
