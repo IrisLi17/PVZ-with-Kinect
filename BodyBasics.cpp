@@ -454,7 +454,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 						}
                         /**************By Huyb*************************/
 
-						/*
+						
 
 						std::ofstream fp("test.txt", std::ios::app);
 						if( !has_caliborate ){
@@ -504,7 +504,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 						}
 
 
-						fp.close();*/
+						fp.close();
 
                         if (SUCCEEDED(hr))
                         {
