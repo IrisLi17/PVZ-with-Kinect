@@ -13,7 +13,7 @@
 #include <utility>
 #include <vector>
 #include <cstdlib>
-#include "afx.h"
+#include <atlstr.h>
 #include "shellapi.h"
 
 #define points_num 3
