@@ -1,0 +1,5 @@
+*.ico
+*.rc
+BodyBasics.h
+resource.h
+stdafx.h
