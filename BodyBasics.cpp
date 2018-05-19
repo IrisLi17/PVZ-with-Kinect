@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 #include <cstdlib>
+#include <atlstr.h>
+#include "shellapi.h"
 
 #define points_num 3
 static const float c_JointThickness = 3.0f;
@@ -32,6 +34,8 @@ static int SCREEN_WIDTH = GetSystemMetrics(SM_CXSCREEN);
 static int SCREEN_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
 //double length = GetSystemMetrics(SM_CXSCREEN); //屏幕长
 //double width = GetSystemMetrics(SM_CYSCREEN);
+
+static wchar_t* htmlPath = L"C:\\Users\\lyf\\Documents\\Kinect\\PVZ-with-Kinect\\calibrate.html";
 
 /***************************Functions from Huyb**********************************/
 void mouse_move(double dx, double dy);
@@ -68,7 +72,7 @@ int my_sign(double in)
 
 /***************************Functions from wzy********************************/
 
-// 待校准的坐标
+// å¾…æ ¡å‡†çš„åæ ‡
 
 
 
@@ -100,6 +104,7 @@ void coordtransfer(float x_pre, float y_pre, float & x_done, float & y_done)
 
 	x_done = a*(x_pre - x_standard3) + b*(y_pre - y_standard3);
 	y_done = c*(x_pre - x_standard3) + d*(y_pre - y_standard3);
+
 }
 
 void mouse_press(double x, double y)
@@ -501,6 +506,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 							else if (kinectPoints.size() == points_num) {
 								has_caliborate = TRUE;
 								fp << "=====================ALREADY SET!====================\n";
+
 							}
 						}
 						else
@@ -577,6 +583,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 
 						if (SUCCEEDED(hr))
 						{
+
 							for (int j = 0; j < _countof(joints); ++j)
 							{
 								jointPoints[j] = BodyToScreen(joints[j].Position, width, height);
