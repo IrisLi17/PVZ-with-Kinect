@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 #include <cstdlib>
+#include "afx.h"
+#include "shellapi.h"
 
 #define points_num 3
 static const float c_JointThickness = 3.0f;
@@ -30,6 +32,8 @@ static float current_y_in_space = 0;
 static float current_y_on_screen = 0;
 static int SCREEN_WIDTH = 4096;
 static int SCREEN_HEIGHT = 2304;
+
+static wchar_t* htmlPath = L"C:\\Users\\lyf\\Documents\\Kinect\\PVZ-with-Kinect\\calibrate.html";
 
 /***************************Functions from Huyb**********************************/
 void mouse_move(double dx, double dy);
@@ -66,18 +70,18 @@ int my_sign(double in)
 
 /***************************Functions from wzy********************************/
 
-// 待校准的坐标
+// å¾…æ ¡å‡†çš„åæ ‡
 
 
 
 
 void coordtransfer(int x_pre,int y_pre,int & x_done, int & y_done)
 {
-	double length= GetSystemMetrics(   SM_CXSCREEN   ); //屏幕长
-	double width=   GetSystemMetrics(   SM_CYSCREEN   );  //屏幕宽
-	double x_standard1,y_standard1;  //kinect左下角
-	double x_standard2,y_standard2;  //kinect右下角
-	double x_standard3,y_standard3;  //kinect左上角
+	double length= GetSystemMetrics(   SM_CXSCREEN   ); //å±å¹•é•¿
+	double width=   GetSystemMetrics(   SM_CYSCREEN   );  //å±å¹•å®½
+	double x_standard1,y_standard1;  //kinectå·¦ä¸‹è§’
+	double x_standard2,y_standard2;  //kinectå³ä¸‹è§’
+	double x_standard3,y_standard3;  //kinectå·¦ä¸Šè§’
 	
 	x_standard1=kinectPoints[0].first;
 	y_standard1=kinectPoints[0].second;
@@ -474,7 +478,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 							/*
 							d_x = x_ratio*(temp_x_in_space - current_x_in_space);
 							d_y = y_ratio*(temp_y_in_space - current_y_in_space);
-							if (current_x_in_space != 0 && current_y_in_space != 0)//第一次不动
+							if (current_x_in_space != 0 && current_y_in_space != 0)//ç¬¬ä¸€æ¬¡ä¸åŠ¨
 							{
 								mouse_move(d_x, d_y);
 							}
@@ -486,7 +490,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 							fp << "current ordinate:\n screen{ x:" << current_x_on_screen << ",y:" << current_y_on_screen <<
 								"};space{ x:" << current_x_in_space << ",y:" << current_y_in_space << "};d{ x:" << d_x << ",y:" << d_y << "}\n";
 							*/
-							/*下面是绝对移动*/
+							/*ä¸‹é¢æ˜¯ç»å¯¹ç§»åŠ¨*/
 							/*
 							temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
 							temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
@@ -494,7 +498,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 							temp_y_on_screen = y_ratio * temp_y_in_space;
 							d_x = temp_x_on_screen - current_x_on_screen;
 							d_y = temp_y_on_screen - current_y_on_screen;
-							if (current_x_in_space != 0 && current_y_in_space != 0)//第一次不动
+							if (current_x_in_space != 0 && current_y_in_space != 0)//ç¬¬ä¸€æ¬¡ä¸åŠ¨
 							{
 							mouse_move(d_x, d_y);
 							}
@@ -524,7 +528,8 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 						}
 						
 						if( !has_caliborate ){
-							//caliborate, 记录两个坐标系对应关系
+							//caliborate, è®°å½•ä¸¤ä¸ªåæ ‡ç³»å¯¹åº”å…³ç³»
+							ShellExecute(0,L"open",L"chrome.exe",htmlPath,0,0);
 							if(kinectPoints.size()<points_num && fabs(joints[JointType_ThumbRight].Position.Y-joints[JointType_HandRight].Position.Y)>20){
 								kinectPoints.push_back(std::pair<double,double>(joints[JointType_ThumbRight].Position.X,joints[JointType_ThumbRight].Position.Y));
 							} else if(kinectPoints.size() == points_num) {
