@@ -12,8 +12,9 @@
 #include <Windows.h>
 #include <utility>
 #include <vector>
+#include <cstdlib>
 
-#define points_num 4
+#define points_num 3
 static const float c_JointThickness = 3.0f;
 static const float c_TrackedBoneThickness = 6.0f;
 static const float c_InferredBoneThickness = 1.0f;
@@ -31,17 +32,17 @@ static int SCREEN_WIDTH = 4096;
 static int SCREEN_HEIGHT = 2304;
 
 /***************************Functions from Huyb**********************************/
-void mouse_move(int dx, int dy);
+void mouse_move(double dx, double dy);
 int my_sign(double in);
-void mouse_move(int dx, int dy)
+void mouse_move(double dx, double dy)
 {
 	int const TIMES_TOTAL = 20;
 	float TIME_EACH_MOVE = 2e-9;
 	float const DISTANCE_EACH_MOVE = 1;
 	float total_distance, x_each, y_each;
 	total_distance = sqrt(pow(dx, 2) + pow(dy, 2));
-	float times = min(total_distance / DISTANCE_EACH_MOVE, TIMES_TOTAL);
-	float total_time = times*TIME_EACH_MOVE;
+	double times = min(total_distance / DISTANCE_EACH_MOVE, TIMES_TOTAL);
+	double total_time = times*TIME_EACH_MOVE;
 	x_each = abs(dx / times) > 1 ? dx / times : 1 * my_sign(dx);
 	y_each = abs(dy / times) > 1 ? dy / times : 1 * my_sign(dy);
 	for (int i = 0; i < times; i++)
@@ -62,6 +63,58 @@ int my_sign(double in)
     return out;
 }
 /***************************Functions from Huyb**********************************/
+
+/***************************Functions from wzy********************************/
+
+// ÂæÖÊ†°ÂáÜÁöÑÂùêÊ†á
+
+
+
+
+void coordtransfer(int x_pre,int y_pre,int & x_done, int & y_done)
+{
+	double length= GetSystemMetrics(   SM_CXSCREEN   ); //Â±èÂπïÈïø
+	double width=   GetSystemMetrics(   SM_CYSCREEN   );  //Â±èÂπïÂÆΩ
+	double x_standard1,y_standard1;  //kinectÂ∑¶‰∏ãËßí
+	double x_standard2,y_standard2;  //kinectÂè≥‰∏ãËßí
+	double x_standard3,y_standard3;  //kinectÂ∑¶‰∏äËßí
+	
+	x_standard1=kinectPoints[0].first;
+	y_standard1=kinectPoints[0].second;
+	x_standard2=kinectPoints[1].first;
+	y_standard2=kinectPoints[1].second;
+	x_standard3=kinectPoints[2].first;
+	y_standard3=kinectPoints[2].second;
+	
+	
+	double p1=x_standard1-x_standard3;
+	double q1=y_standard1-y_standard3;
+	double p2=x_standard2-x_standard1;
+	double q2=y_standard2-y_standard1;
+	double a=(double)-q1*length/(p1*q2-q1*p2);
+	double b=(double) p1*length/(p1*q2-q1*p2);
+	double c=(double)q2*width/(p1*q2-q1*p2);
+	double d=(double)-p2*width/(p1*q2-q1*p2);
+
+	x_done=a*(x_pre-x_standard3)+b*(y_pre-y_standard3);
+	y_done=c*(x_pre-x_standard3)+d*(y_pre-y_standard3);
+}
+
+void mouse_press(double x, double y)
+{
+	SetCursorPos(x, y);
+	mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);    
+    mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);  
+
+}
+
+void mouse_lift(double x,double y)
+{
+	SetCursorPos(x, y); 
+    mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);  
+}
+/***************************Functions from wzy********************************/
+
 
 /// <summary>
 /// Entry point for the application
@@ -416,9 +469,12 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 
 							temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
 							temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
+							coordinate(temp_x_in_space,temp_y_in_space,current_x_on_screen,current_x_on_screen);
+							
+							/*
 							d_x = x_ratio*(temp_x_in_space - current_x_in_space);
 							d_y = y_ratio*(temp_y_in_space - current_y_in_space);
-							if (current_x_in_space != 0 && current_y_in_space != 0)//µ⁄“ª¥Œ≤ª∂Ø
+							if (current_x_in_space != 0 && current_y_in_space != 0)//Á¨¨‰∏ÄÊ¨°‰∏çÂä®
 							{
 								mouse_move(d_x, d_y);
 							}
@@ -429,8 +485,8 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 
 							fp << "current ordinate:\n screen{ x:" << current_x_on_screen << ",y:" << current_y_on_screen <<
 								"};space{ x:" << current_x_in_space << ",y:" << current_y_in_space << "};d{ x:" << d_x << ",y:" << d_y << "}\n";
-
-							/*œ¬√Ê «æ¯∂‘“∆∂Ø*/
+							*/
+							/*‰∏ãÈù¢ÊòØÁªùÂØπÁßªÂä®*/
 							/*
 							temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
 							temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
@@ -438,7 +494,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 							temp_y_on_screen = y_ratio * temp_y_in_space;
 							d_x = temp_x_on_screen - current_x_on_screen;
 							d_y = temp_y_on_screen - current_y_on_screen;
-							if (current_x_in_space != 0 && current_y_in_space != 0)//µ⁄“ª¥Œ≤ª∂Ø
+							if (current_x_in_space != 0 && current_y_in_space != 0)//Á¨¨‰∏ÄÊ¨°‰∏çÂä®
 							{
 							mouse_move(d_x, d_y);
 							}
@@ -454,57 +510,27 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 						}
                         /**************By Huyb*************************/
 
+						/**********wzy********************************/
 						
-
-						std::ofstream fp("test.txt", std::ios::app);
+						if (rightHandState == 3)
+						{
+							right_hand_flag = FALSE;
+							mouse_lift(current_x_on_screen,current_y_on_screen);
+						}
+						else if (rightHandState == 2 && right_hand_flag == FALSE)
+						{
+							right_hand_flag=TRUE;
+							mouse_press(current_x_on_screen,current_y_on_screen);
+						}
+						
 						if( !has_caliborate ){
-							//caliborate, º«¬º¡Ω∏ˆ◊¯±Íœµ∂‘”¶πÿœµ
+							//caliborate, ËÆ∞ÂΩï‰∏§‰∏™ÂùêÊ†áÁ≥ªÂØπÂ∫îÂÖ≥Á≥ª
 							if(kinectPoints.size()<points_num && fabs(joints[JointType_ThumbRight].Position.Y-joints[JointType_HandRight].Position.Y)>20){
 								kinectPoints.push_back(std::pair<double,double>(joints[JointType_ThumbRight].Position.X,joints[JointType_ThumbRight].Position.Y));
 							} else if(kinectPoints.size() == points_num) {
 								has_caliborate = TRUE;
 							}
 						}
-						if (leftHandState == 3 && rightHandState == 3)
-						{
-							left_hand_flag = FALSE;
-							right_hand_flag = FALSE;
-							//fp << "==============reset the clock==================\n";
-						}
-						else if (leftHandState == 2 && left_hand_flag == FALSE)
-						{
-							left_hand_flag = TRUE;
-							keybd_event(0x28, 0, 0, 0);
-							Sleep(100);
-							keybd_event(0x28, 0, KEYEVENTF_KEYUP, 0);//œ¬ 
-							//fp << "==============left hand pagedown===============\n";
-						}
-						else if (rightHandState == 2 && right_hand_flag == FALSE)
-						{
-							right_hand_flag = TRUE;
-							keybd_event(0x26, 0, 0, 0);
-							Sleep(100);
-							keybd_event(0x26, 0, KEYEVENTF_KEYUP, 0);//…œ
-							//fp << "==============right hand pageup===============\n";
-						}
-						else if (rightHandState == 4 && leftHandState == 4 && left_hand_flag == 0 && right_hand_flag == 0)
-						{
-							keybd_event(0x1B,
-								0,
-								0,
-								0);
-							Sleep(100);
-							keybd_event(0x1B,
-								0,
-								KEYEVENTF_KEYUP,
-								0);
-							left_hand_flag = 1;
-							right_hand_flag = 1;
-							fp << "===================CLOSE================\n";
-						}
-
-
-						fp.close();
 
                         if (SUCCEEDED(hr))
                         {
