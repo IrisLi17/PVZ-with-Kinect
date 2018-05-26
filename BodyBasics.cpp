@@ -4,6 +4,8 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
+#include <tchar.h>
+#include <strsafe.h>
 #include "stdafx.h"
 #include <strsafe.h>
 #include "resource.h"
@@ -13,8 +15,10 @@
 #include <utility>
 #include <vector>
 #include <cstdlib>
-#include <atlstr.h>
+//#include <atlstr.h>
 #include "shellapi.h"
+#include <iostream>
+
 
 #define points_num 3
 static const float c_JointThickness = 3.0f;
@@ -26,6 +30,7 @@ static bool left_hand_flag = FALSE;
 static bool right_hand_flag = FALSE;
 static bool right_hand_transfer_flag=FALSE;
 static bool has_caliborate = FALSE;
+static bool has_open_html = FALSE;
 static std::vector<std::pair<double, double>> kinectPoints;
 static float current_x_in_space = 0;
 static float current_x_on_screen = 0;
@@ -33,10 +38,11 @@ static float current_y_in_space = 0;
 static float current_y_on_screen = 0;
 static int SCREEN_WIDTH = GetSystemMetrics(SM_CXSCREEN);
 static int SCREEN_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
+static unsigned long long PLAYER_ID = 0;
 //double length = GetSystemMetrics(SM_CXSCREEN); //屏幕长
 //double width = GetSystemMetrics(SM_CYSCREEN);
 
-static wchar_t* htmlPath = L"C:\\Users\\lyf\\Documents\\Kinect\\PVZ-with-Kinect\\calibrate.html";
+//static wchar_t* htmlPath = L"C:\\Users\\lyf\\Documents\\Kinect\\PVZ-with-Kinect\\calibrate.html";
 
 /***************************Functions from Huyb**********************************/
 void mouse_move(double dx, double dy);
@@ -104,7 +110,7 @@ void coordtransfer(float x_pre, float y_pre, float & x_done, float & y_done)
 	double d = (double)-p2*width / (p1*q2 - q1*p2);
 
 	x_done = a*(x_pre - x_standard3) + b*(y_pre - y_standard3);
-	y_done = c*(x_pre - x_standard3) + d*(y_pre - y_standard3);
+	y_done = -c*(x_pre - x_standard3) - d*(y_pre - y_standard3);
 
 }
 
@@ -465,27 +471,69 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 						hr = pBody->GetJoints(_countof(joints), joints);
 
 						std::ofstream fp("test.txt", std::ios::app);
-
-						if (!has_caliborate) 
+						/************checking ID*************************/
+						/*if (!PLAYER_ID)
 						{
+							pBody->get_TrackingId(&PLAYER_ID);
+							fp << "initial ID" << PLAYER_ID << "\n";
+						}*/
+						if (PLAYER_ID)
+						{
+							unsigned long long temp;
+							pBody->get_TrackingId(&temp);
+							if (temp != PLAYER_ID)
+							{
+								fp << "player exist!!" << PLAYER_ID << " " << temp << "\n";
+								continue;
+							}
+						}
+						else
+						{
+							fp << "no one is playing !!!!!!\n";
+						}
+						/*****************checking ID************************/
+						if (!has_caliborate)
+						//if(0)
+						{
+							if(!has_open_html  && leftHandState == HandState_Lasso && rightHandState == HandState_Lasso){
+								fp<<"start calibrate!\n";
+								//int ret = int(ShellExecute(0,L"open",L"chrome.exe",htmlPath,0,0));
+								//fp<<ret;
+								pBody->get_TrackingId(&PLAYER_ID);
+								fp << "initial ID" << PLAYER_ID << "\n";
+								has_open_html = TRUE;
+							}
+							float temp_x_in_space = 0, temp_y_in_space = 0, temp_x_on_screen = 0, temp_y_on_screen = 0;
+							float d_x = 0, d_y = 0;
+							float x_ratio, y_ratio;
+
+							x_ratio = SCREEN_WIDTH / 2;
+							y_ratio = SCREEN_HEIGHT / 2;
+							temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
+							temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
+							//coordtransfer(temp_x_in_space, temp_y_in_space, temp_x_on_screen, temp_x_on_screen);
+
 							
-							fp << fabs(joints[JointType_ThumbRight].Position.Y - joints[JointType_HandRight].Position.Y) << '\n';
-							if (kinectPoints.size()<points_num && rightHandState == 2 && right_hand_transfer_flag == FALSE) {
+							d_x = x_ratio*(temp_x_in_space - current_x_in_space);
+							d_y = y_ratio*(temp_y_in_space - current_y_in_space);
+							
+							//fp << fabs(joints[JointType_ThumbRight].Position.Y - joints[JointType_HandRight].Position.Y) << '\n';
+							if (has_open_html && kinectPoints.size()<points_num && rightHandState == HandState_Closed && right_hand_transfer_flag == FALSE) {
 								kinectPoints.push_back(std::pair<double, double>(joints[JointType_ThumbRight].Position.X, joints[JointType_ThumbRight].Position.Y));
 								fp << "===================thumb up!!====================\n";
 								fp << "location{ x:" << kinectPoints.back().first << ",y:" << kinectPoints.back().second << "};\n";
 								right_hand_transfer_flag = TRUE;
 							}
-							else if (kinectPoints.size() == points_num) {
+							else if (has_open_html && kinectPoints.size() == points_num) {
 								has_caliborate = TRUE;
 								fp << "=====================ALREADY SET!====================\n";
 
 							}
-							else if(rightHandState == 3) {
+							else if(has_open_html && rightHandState == HandState_Open) {
 								right_hand_transfer_flag = FALSE;
 							}
 						}
-						else
+						else if(has_caliborate)
 						{
 							/*******************BY Huyb***************/
 							float temp_x_in_space = 0, temp_y_in_space = 0, temp_x_on_screen = 0, temp_y_on_screen = 0;
@@ -499,7 +547,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 
 								temp_x_in_space = joints[JointType_HandRight].Position.X + 1;
 								temp_y_in_space = 1 - joints[JointType_HandRight].Position.Y;
-								coordtransfer(temp_x_in_space, temp_y_in_space, temp_x_on_screen, temp_x_on_screen);
+								coordtransfer(temp_x_in_space, temp_y_in_space, temp_x_on_screen, temp_y_on_screen);
 
 								
 								//d_x = x_ratio*(temp_x_in_space - current_x_in_space);
@@ -539,12 +587,12 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 								*/
 								/**********wzy********************************/
 								
-								if (rightHandState == 3)
+								if (rightHandState == HandState_Open)
 								{
 									right_hand_flag = FALSE;
 									mouse_lift(current_x_on_screen, current_y_on_screen);
 								}
-								else if (rightHandState == 2 && right_hand_flag == FALSE)
+								else if (rightHandState == HandState_Closed && right_hand_flag == FALSE)
 								{
 									right_hand_flag = TRUE;
 									mouse_press(current_x_on_screen, current_y_on_screen);
